@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#303F9F">
+    <meta name="msapplication-TileColor" content="#3372DF">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <iron-meta key="domain" value="www.cloudstitch.com"></iron-meta>
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@cloudstitch">
+    <meta name="og:site_name" content="Cloudstitch">
+    <meta name="application-name" content="Cloudstitch">
+    <meta name="apple-mobile-web-app-title" content="Polymer Jobs - Cloudstitch">
+    <meta name="twitter:title" content="Polymer Jobs - Cloudstitch">
+    <meta name="og:title" content="Polymer Jobs - Cloudstitch">
+    <title>Polymer Jobs - Cloudstitch</title>
+    <meta name="og:url" content="{{meta.url}}">
+    <meta name="description" content="A self-contained template you can put on any website and power with a spreadsheet.">
+    <meta name="twitter:description" content="A self-contained template you can put on any website and power with a spreadsheet.">
+    <meta name="og:description" content="A self-contained template you can put on any website and power with a spreadsheet.">
+    <meta name="twitter:image" content="http://apps.cloudstitch.io/project-templates/__uploads/handlebars-in-a-box_thumbnailurl.png">
+    <meta name="og:images" content="http://apps.cloudstitch.io/project-templates/__uploads/handlebars-in-a-box_thumbnailurl.png">
+    <link rel="import" href="//components.cloudstitch.com/cloudstitch-polymer.html">
+    <script src="//components.cloudstitch.com/editor/2/bower_components/webcomponentsjs/webcomponents.min.js"></script>
+  </head>
+  <body>
+
+    <div id="outer" style="position:relative">
+
+    <iron-image src="https://components.cloudstitch.com/demo/polymer-jobs.png" sizing="contain" style="width:100%; height:100px" ></iron-image>
+    <h2>Companies hiring <a href="http://polymer-project.org" target="_blank">Polymer</a> hackers & designers</h2>
+
+    <iron-pages attr-for-selected="data-route" selected="{{route}}">
+      <div id="view" data-route="view">
+        <div class="search-options">
+          <input id="search"  placeholder="Search" value="{{textSearch::input}}" />
+          <paper-button toggles active="{{remoteOnly}}" id="remoteOnly">Remote</paper-button>
+          <paper-button toggles active="{{localOnly}}" id="localOnly">Local</paper-button>    
+          <paper-button toggles active="{{fullTimeOnly}}" id="localOnly">Full Time</paper-button> <paper-button toggles active="{{hourlyOnly}}" id="localOnly">Hourly</paper-button>    
+          <paper-button toggles active="{{gigOnly}}" id="gigOnly">Gig</paper-button>    
+
+          <paper-button on-tap="add" id="addBtn">+ Add Job</paper-button>
+        </div>
+        <div class="search-results">
+          <template is="dom-repeat" items="[[limitedJobs]]" filter="{{computeFilter(textSearch, remoteOnly, localOnly, fullTimeOnly, hourlyOnly, gigOnly)}}" sort="{{computeSort(sortField)}}">
+            <div class$="company-outer sponsored-{{item.Sponsored}}">
+              <div hidden$="{{!item.Sponsored}}" class="sponsored">Sponsored</div>
+              <div class="company">
+                <div class="bulk">
+                  <iron-image hidden$="{{!item.HasLogo}}" class="img" sizing="contain" src$="{{item.LogoUrl}}"></iron-image>
+                  <div class="deets">
+                    <template is="dom-if" if="{{item.CompanyUrl.length}}">
+                      <h3><a style="display: inline" href="{{item.CompanyUrl}}" target="_blank">{{item.Company}}</a></h3>
+                    </template>
+                    <template is="dom-if" if="{{!item.CompanyUrl.length}}">
+                    <h3>{{item.Company}}</h3>
+                    </template>
+                    <template is="dom-if" if="{{item.JobUrl.length}}">
+                    <h4><a href="{{item.JobUrl}}" target="_blank">{{item.Position}}</a></h4>
+                    </template>
+                    <template is="dom-if" if="{{!item.JobUrl.length}}">
+                    <h4>{{item.Position}}</h4>
+                    </template>
+                    <div class="description">{{item.Location}}</div>
+                    <div class="description">{{item.Details}}</div>
+                  </div>
+                </div>
+                <div class="prop-blocks">                 
+                  <div class="prop-block">
+                    <div hidden$="{{!item.HiringLocal}}" class="hiring-status">
+                      <iron-icon icon="icons:check-circle"></iron-icon> Local 
+                    </div>
+                    <div hidden$="{{!item.HiringRemote}}" class="hiring-status">
+                        <iron-icon icon="icons:check-circle"></iron-icon> Remote 
+                    </div>
+                  </div>
+                  <div class="prop-block">
+                    <div hidden$="{{!item.HiringFullTime}}" class="hiring-status">
+                      <iron-icon icon="icons:check-circle"></iron-icon> Full Time 
+                    </div>
+                    <div hidden$="{{!item.HiringHourly}}" class="hiring-status">
+                        <iron-icon icon="icons:check-circle"></iron-icon> Hourly 
+                    </div>
+                    <div hidden$="{{!item.HiringGig}}" class="hiring-status">
+                        <iron-icon icon="icons:check-circle"></iron-icon> Gig 
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <paper-card id="addForm" data-route="add" heading="Add Job Listing">
+        <form is="iron-form" on-iron-form-response="showSuccess" id="form" method="POST" enctype="multipart/form-data" action="https://api.cloudstitch.com/ted/polymer-jobs/datasource/sheet">
+          <div class="card-content">        
+            <label id="label2">Company Info:</label>
+            <paper-input name="Company" placeholder="Company Name"></paper-input>
+            <paper-input name="Location" placeholder="Company Location"></paper-input>
+            <paper-input name="Email" placeholder="Your Email" value="{{email}}"></paper-input>
+            <paper-input name="CompanyUrl" placeholder="Company URL"></paper-input>
+
+            <label id="label2">Optional Logo (please upload a square image):</label>            
+            <input id="logoFile" type="file" name="LogoUrl" placeholder="Logo"></input>
+
+            <label id="label2">Role:</label>
+            <paper-input name="Position" placeholder="Job Position"></paper-input>
+            <paper-input name="Details" placeholder="Job Details"></paper-input>
+            <paper-input name="JobUrl" placeholder="Job Listing URL"></paper-input>
+
+            <label id="label2">Location Flexibility:</label>
+            <paper-checkbox name="HiringLocal">Local</paper-checkbox></paper-input>
+            <paper-checkbox name="HiringRemote">Remote</paper-checkbox></paper-input>
+
+            <label id="label2">Employment Type:</label>
+            <paper-checkbox name="HiringFullTime">Full Time</paper-checkbox>
+            <paper-checkbox name="HiringHourly">Hourly</paper-checkbox>
+            <paper-checkbox name="HiringGig">Gig Based</paper-checkbox>          
+
+            <label id="label2">Listing Type:</label>
+            <paper-radio-group id="planType" selected="PlanOneMonth" aria-labelledby="label2">
+              <paper-radio-button name="PlanFree">Free</paper-radio-button>
+              <paper-radio-button name="PlanOneMonth">Featured 1 month ($25)</paper-radio-button>
+              <paper-radio-button name="PlanTwoMonth">Featured 2 months ($40)</paper-radio-button>
+            </paper-radio-group>
+
+          </div>
+          <div class="card-actions">
+            <paper-button class="primary" id="submit" on-tap="doSubmit">Submit Listing</paper-button>
+            <paper-button on-tap="cancelSubmit">Cancel</paper-button>
+
+          </div>
+          <input type="hidden" id="token" value$="{{stripeToken}}" name="stripeToken" />
+          <input type="hidden" id="stripeAmount" name="stripeAmount" value$="{{planCost}}" />
+          <input type="hidden" name="stripeCurrency" value="usd" />
+          <input type="hidden" name="stripeDescription" value ="Polymerjobs.io Plan" />
+
+        </form>
+      </paper-card>
+
+      <paper-card id="thanks" data-route="thanks" heading="Thank You!">
+          <div class="card-content">        
+            <p>We've received your posting and will approve it shortly. We'll send you an email when we do!</p>
+          </div>
+          <div class="card-actions">
+            <paper-button class="primary" on-tap="toJobs">Back to Jobs</paper-button>
+          </div>
+      </paper-card>
+
+    </iron-pages>
+
+    <footer>
+      <p align="center">Like this job board?<br /><a href="https://cloudstitch.com/project-templates/polymer-jobs">Clone it on Cloudstitch</a></p>
+    </footer>
+    </div>    
+
+
+  </body>
+</html>
